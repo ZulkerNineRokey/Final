@@ -1,0 +1,222 @@
+import pyttsx3
+import datetime
+import speech_recognition as sr
+import subprocess
+import wikipedia
+import os
+import random
+import calendar
+
+# voice, rate, volume
+engine = pyttsx3.init('sapi5')
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[1].id)  # voice ,index 0 for male & 1 for female
+engine.setProperty('rate', 175)  # setting up new voice rate
+engine.setProperty('volume', 1.0)  # setting up volume level  between 0 and 1
+
+
+# Speak
+def speak(audio):
+    engine.say(audio)
+    engine.runAndWait()
+
+
+# Greeting
+def greeting():
+    """
+    From  -  To  => part of day
+        ---------------------------
+        00:00 - 04:59 => midnight
+        05:00 - 06:59 => dawn
+        07:00 - 10:59 => morning
+        11:00 - 12:59 => noon
+        13:00 - 16:59 => afternoon
+        17:00 - 18:59 => dusk
+        19:00 - 20:59 => evening
+        21:00 - 23:59 => night
+    """
+    hour = datetime.datetime.now().hour
+    if 0 <= hour < 5:
+        speak('Good midnight!')
+    elif 5 <= hour < 7:
+        speak('Good dawn!')
+    elif 7 <= hour < 11:
+        speak('Good morning!')
+    elif 11 <= hour < 13:
+        speak('Good noon!')
+    elif 13 <= hour < 17:
+        speak('Good afternoon!')
+    elif 17 <= hour < 19:
+        speak('Good dusk')
+    elif 19 <= hour < 21:
+        speak('Good evening!')
+    else:
+        speak('Good night!')
+    speak('How are you?')
+
+
+# Take commands
+def takeCommand():
+    """
+    It take microphone input from the user.
+    return : string output
+    """
+
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening ...")
+        r.pause_threshold = 1
+        audio = r.listen(source)
+
+    try:
+        print("Recognizing ...")
+        query = r.recognize_google(audio, language="en")
+        print(f"User said : {query}\n")
+
+    except Exception as e:
+        # print(e)
+        print("Say that again, please ...")
+        return "NONE"
+    return query
+
+
+if __name__ == "__main__":
+    speak("Hi sir")
+    greeting()
+    while True:
+        _query = takeCommand().lower()
+        # Logic for executing tasks based on _query
+
+        # Go to sleep
+        if 'active sleep mode' in _query:
+            speak("Activating sleep mode, have a nice time sir")
+            subprocess.call('psshutdown -d -t 00')
+
+        # terminate the program
+        elif 'exit' in _query:
+            speak("Okay sir.")
+            speak("Have a nice time!")
+            break
+        # open task manager
+        elif 'open task manager' in _query:
+            os.startfile(r"C:\ProgramData\Microsoft\Windows\Start Menu\Programs\System Tools\Task Manager.lnk")
+        # setup wiki
+        elif "wikipedia" in _query:
+            query_ = _query.replace("wikipedia", "")
+            # speak("sir How many sentences do you want to listen?")
+            # sentences = 2
+            # try:
+            #     if_int = int(takeCommand())
+            #     if str(type(if_int)) == "int":
+            #         sentences = if_int
+            # except ValueError:
+            #     sentences = 2
+            speak(f"searching information on wikipedia about {query_}")
+            result = wikipedia.summary(query_, sentences=2)
+            # print(result)
+            speak(f"According to wikipedia {result}")
+
+        # play music
+        elif 'play music' in _query:
+            music_dir = r'E:\Fire'
+            songs = os.listdir(music_dir)
+            # print(songs)
+            random_song = random.randint(0, 2)
+            os.startfile(os.path.join(music_dir, songs[random_song]))
+            speak('Ok sir')
+
+        # stop music
+        elif 'stop music' in _query:
+            subprocess.call('taskkill /im PotPlayerMini64.exe /t /f')
+
+        # CALENDAR --- DATETIME
+
+        elif 'what time is it' in _query:
+            strTime = datetime.datetime.now().strftime('%H:%M:%S')
+            speak(f'Sir, The time is {strTime}')
+
+        elif "what day is today" in _query:
+            year = int(datetime.datetime.now().strftime('%Y'))
+            month = int(datetime.datetime.now().strftime('%m'))
+            day = int(datetime.datetime.now().strftime('%d'))
+            week_day = calendar.weekday(year, month, day)
+            day_name = calendar.day_name[week_day]
+            # print(day_name)
+            speak(f'Sir, today is {day_name}')
+
+        elif 'what date is today' in _query:
+            dateToday = datetime.datetime.now().strftime('%Y-%m-%d')
+            speak(f'Sir, the date is {dateToday}')
+
+        # Application open and quit
+
+        # open VS code
+        elif 'open vs code' in _query:
+            os.startfile(r"E:\INSTALLED APPS\VScode\Microsoft VS Code\Code.exe")
+            speak('Ok sir')
+
+        # close VS code
+        elif 'close vs code' in _query:
+            subprocess.call('taskkill /im Code.exe /t /f')
+
+        # open 4K video downloader
+        elif 'open video downloader' in _query:
+            os.startfile(r"E:\INSTALLED APPS\4K video downloader\4kvideodownloader.exe")
+            speak('Ok sir')
+
+        # close 4k video downloader
+        elif 'close video downloader' in _query:
+            subprocess.call('taskkill /im 4kvideodownloader.exe /t /f')
+
+        # open this pc
+        elif 'open this pc' in _query:
+            os.startfile(r"C:\Users\AKIL\Desktop\This PC - Shortcut.lnk")
+            speak('Ok sir')
+
+        # open opera
+        elif 'open opera' in _query:
+            os.startfile(r"C:\Users\AKIL\AppData\Local\Programs\Opera\launcher.exe")
+            speak('OK SIR')
+
+        # close opera
+        elif 'close opera' in _query:
+            subprocess.call('taskkill /im opera.exe /t /f')
+
+        # open PyCharm
+        elif 'open python' in _query:
+            os.startfile(r"E:\INSTALLED APPS\PyCharm\PyCharm Community Edition 2019.3.3\bin\pycharm64.exe")
+
+        # close PyCharm
+        elif 'close python' in _query:
+            subprocess.call('taskkill /im pycharm64.exe /t /f')
+
+        #open sublime text
+        elif 'open sublime' in _query:
+            os.startfile(r"E:\INSTALLED APPS\Sublime\Sublime Text 3\sublime_text.exe")
+
+        # close sublime text
+        elif 'close sublime' in _query:
+            subprocess.call('taskkill /im sublime_text.exe /t /f')
+
+        # basic conversation
+        elif 'how are you' in _query:
+            speak('I am fine ,thank you,sir.')
+            speak("And you?")
+
+        elif 'and you' in _query:
+            speak('I am also fine thank you.')
+            speak('How may i help you ,sir?')
+
+        elif 'not fine' in _query:
+            speak("Why sir What happened,")
+
+        elif 'thank you' in _query:
+            speak('Welcome sir')
+            speak('How may I help you?')
+
+        elif 'i am also fine' in _query:
+            speak('oh My pleasure')
+        elif 'welcome to linux' in _query:
+            speak("Thank you sir, hope you will rebuild me very soon")
+        elif 'i will' in _query:
+            speak("My pleasure")
